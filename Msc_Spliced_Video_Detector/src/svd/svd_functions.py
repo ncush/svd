@@ -13,7 +13,9 @@ import numpy as np
 #import glob
 import cv2
 import scenedetect
+import configparser
 
+config = configparser.ConfigParser()
 #takes in a video file, and creates a dictionary containing frames/images
 def frame_lst(vidcap):    
     success, image = vidcap.read()

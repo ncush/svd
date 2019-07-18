@@ -36,22 +36,32 @@ class mywindow(QtWidgets.QMainWindow):
         print('button clicked')
     
     def login_button(self):
+        config('next.ini')
         vidcap = cv2.VideoCapture('a.mp4')
         lst1 = frame_lst(vidcap)
-        config = {}
-        config["custom_chi"] = True
-        config["chi_distance"] = 0.009
+#         config = {}
+#         config["custom_chi"] = True
+#         config["chi_distance"] = 0.009
         print(get_comparison(lst1, config))
     
     def default_config(self):
         # lets create that config file for next time...
         cfgfile = open("next.ini",'w')
         # add the settings to the structure of the file, and lets write it out...
-        config.add_section('Histogram ')
-        config.set('Person','HasEyes', 'True')
-        config.set('Person','Age', '50')
+        config.add_section('Histogram Comparison')
+        config.set('Histogram Comparison','Custom Chi', 'True')
+        config.set('Histogram Comparison','Numpy', 'False')
+        config.set('Histogram Comparison','OpenCV', 'False')
+        config.add_section('Histogram Thresholds')
+        config.set('Histogram Thresholds','Custom Chi', '0.009')
+        config.set('Histogram Thresholds','Numpy', '0')
+        config.set('Histogram Thresholds','OpenCV', '0')
+        config.add_section('Facial Recognition')
+        config.set('Facial Recognition', 'Check For Face In Video', 'False')
+        config.set('Facial Recognition', 'Crop Face', 'False')
         config.write(cfgfile)
         cfgfile.close()
+        print('default settings')
     
  
 app = QtWidgets.QApplication([])
