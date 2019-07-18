@@ -3,20 +3,30 @@ Created on 4 Jul 2019
 
 @author: Niall
 '''
-import tkinter
-from tkinter import filedialog
-import os
+import cv2
 
-root = tkinter.Tk()
-root.withdraw() #use to hide tkinter window
+class Capture():
+    def __init__(self):
+        self.capturing = False
+        self.c = cv2.VideoCapture(0)
 
-def search_for_file_path ():
-    currdir = os.getcwd()
-    tempdir = filedialog.askdirectory(parent=root, initialdir=currdir, title='Please select a directory')
-    if len(tempdir) > 0:
-        print ("You chose: %s" % tempdir)
-    return tempdir
+    def startCapture(self):
+        print("pressed start")
+        self.capturing = True
+        cap = self.c
+        while(self.capturing):
+            ret, frame = cap.read()
+            cv2.imshow("Capture", frame)
+            cv2.waitKey(5)
+        cv2.destroyAllWindows()
 
+    def endCapture(self):
+        print ("pressed End")
+        self.capturing = False
+        # cv2.destroyAllWindows()
 
-file_path_variable = search_for_file_path()
-print ("\nfile_path_variable = ", file_path_variable)
+    def quitCapture(self):
+        print ("pressed Quit")
+        cap = self.c
+        cv2.destroyAllWindows()
+        cap.release()

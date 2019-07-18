@@ -3,6 +3,7 @@ Created on 2 Jul 2019
 
 @author: Niall
 '''
+
 # import the necessary packages
 #from scipy.spatial import distance as dist
 #from skimage.util import img_as_uint
@@ -11,6 +12,7 @@ import numpy as np
 #import argparse
 #import glob
 import cv2
+import scenedetect
 
 #takes in a video file, and creates a dictionary containing frames/images
 def frame_lst(vidcap):    
@@ -74,8 +76,57 @@ def chi2_distance(histA, histB, eps=1e-10):
     # return the chi-squared distance
     return d
 
+def compare_histograms_opencv(images, index, frame1, frame2, sus):
+    
+    OPENCV_METHODS = (
+    ("Correlation", cv2.HISTCMP_CORREL),
+    ("Chi-Squared", cv2.HISTCMP_CHISQR),
+    ("Intersection", cv2.HISTCMP_INTERSECT),
+    ("Hellinger", cv2.HISTCMP_BHATTACHARYYA))
+     
+    # loop over the comparison methods
+    for (methodName, method) in OPENCV_METHODS:
+        # initialize the results dictionary and the sort
+        # direction
+        results = {}
+        reverse = False
+     
+        # if we are using the correlation or intersection
+        # method, then sort the results in reverse order
+        if methodName in ("Correlation", "Intersection"):
+            reverse = True
+     
+        # loop over the index
+        for (k, hist) in index.items():
+            # compute the distance between the two histograms
+            # using the method and update the results dictionary
+            d = cv2.compareHist(index[str(frame1)], hist, method)
+            results[k] = d
+     
+        # sort the results
+        results = sorted([(v, k) for (k, v) in results.items()], reverse = reverse)
+    
+        
+        # initialize the results figure
+    fig = plt.figure("Results: %s" % (methodName))
+    fig.suptitle(methodName, fontsize = 20)
+        
+        # loop over the results
+    if sus:
+        for (i, (v, k)) in enumerate(results):
+                # show the result
+            ax = fig.add_subplot(1, len(results), i + 1)
+            ax.set_title("%s: %.2f" % (k, v))
+            plt.imshow(images[k])
+            plt.axis("off")
+                
+            
+        # show the custom method
+    if sus:
+        plt.show()
+    return results[1]
 #takes in histograms, and compares them using chi2_distance, and then sorts and prints results. 
-def compare_histograms(images, index, frame1, frame2):
+def compare_histograms_custom_chi(images, index, frame1, frame2, sus):
     # initialize the results dictionary
     results = {}
     
@@ -91,28 +142,27 @@ def compare_histograms(images, index, frame1, frame2):
     # sort the results
     results = sorted([(v, k) for (k, v) in results.items()])
         
-    # show the query image
-    fig = plt.figure("Query")
-    ax = fig.add_subplot(1, 1, 1)
-    #ax.imshow(images[str(frame1)])
-    plt.axis("off")
-        
         # initialize the results figure
     fig = plt.figure("Results: Custom Chi-Squared")
     fig.suptitle("Custom Chi-Squared", fontsize=20)
         
         # loop over the results
-    for (i, (v, k)) in enumerate(results):
-            # show the result
-        ax = fig.add_subplot(1, len(results), i + 1)
-        ax.set_title("%s: %.2f" % (k, v))
-        #plt.imshow(images[k])
-        plt.axis("off")
+    if sus:
+        for (i, (v, k)) in enumerate(results):
+                # show the result
+            ax = fig.add_subplot(1, len(results), i + 1)
+            ax.set_title("%s: %.2f" % (k, v))
+            plt.imshow(images[k])
+            plt.axis("off")
+                
             
-        
         # show the custom method
-    #plt.show()
+    if sus:
+        plt.show()
     return results[1]
+
+def scene_detection(vidcap):
+    scenedetect.ContentDetector()
 
 # ap = argparse.ArgumentParser()
 # ap.add_argument("-d", "--dataset", required = True,
@@ -120,28 +170,35 @@ def compare_histograms(images, index, frame1, frame2):
 # args = vars(ap.parse_args())
 #  
 # d = glob.glob(args["dataset"])
-vidcap = cv2.VideoCapture('1.mp4')
-lst1 = frame_lst(vidcap)
 
-def get_comparison(lst1):
+def get_comparison(lst1, config):
     count = 0
     lst = []
+    sus = False
     while count < len(lst1):
         frame1 = count + 1 
         frame2 = count + 2
-        try:
-            x = create_histograms(lst1, frame1, frame2)
-            y = compare_histograms(x['images'], x['index'], frame1, frame2)
-            print(y)
-            if y[0] > 1:
-                print("Suspicious frames detected")
+        if config["custom_chi"]:
+            try:
+                sus = False
+                x = create_histograms(lst1, frame1, frame2)
+                y = compare_histograms_custom_chi(x['images'], x['index'], frame1, frame2, sus)
+                print(y)
+                if y[0] > config["chi_distance"]:
+                    sus = True
+                    print("Suspicious frames detected")
+                    lst.append(y)
+                    compare_histograms_custom_chi(x['images'], x['index'], frame1, frame2, sus)
                 lst.append(y)
+                count += 1
+            except:
+                print('end')
                 break
-            lst.append(y)
-            count += 1
-        except:
-            print('end')
-            break
     return lst
-    
-print(get_comparison(lst1))
+
+# vidcap = cv2.VideoCapture('b.mp4')
+# lst1 = frame_lst(vidcap)
+# config = {}
+# config["custom_chi"] = True
+# config["chi_distance"] = 0.009
+# print(get_comparison(lst1, config))
