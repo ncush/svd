@@ -173,24 +173,26 @@ def scene_detection(vidcap):
 #  
 # d = glob.glob(args["dataset"])
 
-def get_comparison(lst1, config):
+def get_comparison(lst1):
     count = 0
     lst = []
     sus = False
+    config.read("next.ini")
     while count < len(lst1):
         frame1 = count + 1 
         frame2 = count + 2
-        if config["custom_chi"]:
+        if config.get("Histogram Comparison", "custom chi") == "True":
             try:
                 sus = False
                 x = create_histograms(lst1, frame1, frame2)
                 y = compare_histograms_custom_chi(x['images'], x['index'], frame1, frame2, sus)
                 print(y)
-                if y[0] > config["chi_distance"]:
+                if y[0] > float(config.get("Histogram Thresholds", "custom chi")):
                     sus = True
                     print("Suspicious frames detected")
                     lst.append(y)
                     compare_histograms_custom_chi(x['images'], x['index'], frame1, frame2, sus)
+                    break
                 lst.append(y)
                 count += 1
             except:
