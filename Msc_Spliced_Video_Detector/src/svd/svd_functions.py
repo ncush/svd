@@ -172,7 +172,7 @@ def scene_detection(vidcap):
 #  
 # d = glob.glob(args["dataset"])
 
-#Gets histogram comparisons depending on what has been selected in settings
+#Gets histogram comparisons depending on what has been selected in settings.
 def get_comparison(lst1):
     count = 0
     lst = []

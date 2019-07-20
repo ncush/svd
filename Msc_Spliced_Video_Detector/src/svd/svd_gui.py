@@ -151,7 +151,7 @@ class mywindow(QtWidgets.QMainWindow):
         print('default settings')
         self.ui.refresh_widgets()
     
-    #opens browser to select file
+    #opens browser to select file.
     def browse_for_file(self):
         y = QtWidgets.QFileDialog.getOpenFileName()
         print(y[0])
