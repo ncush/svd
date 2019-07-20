@@ -60,7 +60,7 @@ class P:
         self.__x = x
         
 
-
+#finds scenes, returns list of scenes 
 def find_scenes(video_path, threshold):
     # type: (str) -> List[Tuple[FrameTimecode, FrameTimecode]]
     video_manager = VideoManager([video_path])
@@ -117,4 +117,4 @@ def find_scenes(video_path, threshold):
     return scene_list
 
 
-print(find_scenes('b.mp4', 5))   
+print(find_scenes('b.mp4', 5))

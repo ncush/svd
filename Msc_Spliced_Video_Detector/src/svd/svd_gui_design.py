@@ -239,6 +239,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         
+    #refreshes widgets
     def refresh_widgets(self):
         config.read("next.ini")
         
