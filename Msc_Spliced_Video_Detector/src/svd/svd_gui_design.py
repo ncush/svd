@@ -241,7 +241,9 @@ class Ui_MainWindow(object):
         
     def refresh_widgets(self):
         config.read("next.ini")
+        
         try:
+            #Checkboxes
             if config.get("Histogram Comparison", "custom chi") == "True":
                 self.custom_chi_checkbox.setChecked(True)
             else:
@@ -256,11 +258,31 @@ class Ui_MainWindow(object):
                 self.opencv_checkbox.setChecked(True)
             else:
                 self.opencv_checkbox.setChecked(False)
-                
             
+            if config.get("Facial Recognition", "Check For Face In Video") == "True":
+                self.check_face_checkbox.setChecked(True)
+            else:
+                self.check_face_checkbox.setChecked(False)
+                
+            if config.get("Facial Recognition", "Crop Face") == "True":
+                self.crop_face_checkbox.setChecked(True)
+            else:
+                self.crop_face_checkbox.setChecked(False)
+            
+            if config.get("Scene Detect", "Scene Detect On") == "True":
+                self.scene_detect_checkbox.setChecked(True)
+            else:
+                self.scene_detect_checkbox.setChecked(False)
+                
         except:
             print("no config found")
-       
+        try:
+            self.custom_chi_spinbox.setValue(float(config.get("Histogram Thresholds", "Custom Chi")))
+            self.numpy_spinbox.setValue(float(config.get("Histogram Thresholds", "numpy")))
+            self.opencv_spinbox.setValue(float(config.get("Histogram Thresholds", "opencv")))
+            
+        except Exception as e:
+            print(e)
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Spliced Video Detector"))
