@@ -39,7 +39,7 @@ class mywindow(QtWidgets.QMainWindow):
         #checkboxes
         self.ui.custom_chi_checkbox.stateChanged.connect(self.custom_chi_checked)
         self.ui.opencv_checkbox.stateChanged.connect(self.opencv_checked)
-        self.ui.numpy_checkbox.stateChanged.connect(self.numpy_checked)
+        self.ui.scipy_checkbox.stateChanged.connect(self.scipy_checked)
         self.ui.check_face_checkbox.stateChanged.connect(self.check_face_checked)
         self.ui.crop_face_checkbox.stateChanged.connect(self.crop_face_checked)
         self.ui.scene_detect_checkbox.stateChanged.connect(self.scene_detect_checked)
@@ -47,7 +47,7 @@ class mywindow(QtWidgets.QMainWindow):
         
     #loops through checkboxes to see if they are checked or not
     def get_settings(self):
-        lst = [[self.ui.custom_chi_checkbox, "custom_chi_checkbox"], [self.ui.opencv_checkbox, "opencv_checkbox"], [self.ui.numpy_checkbox, "numpy_checkbox"],[self.ui.check_face_checkbox, "check_face_checkbox"],[self.ui.crop_face_checkbox,"crop_face_checkbox"],[self.ui.scene_detect_checkbox,"scene_detect_checkbox"]]
+        lst = [[self.ui.custom_chi_checkbox, "custom_chi_checkbox"], [self.ui.opencv_checkbox, "opencv_checkbox"], [self.ui.scipy_checkbox, "scipy_checkbox"],[self.ui.check_face_checkbox, "check_face_checkbox"],[self.ui.crop_face_checkbox,"crop_face_checkbox"],[self.ui.scene_detect_checkbox,"scene_detect_checkbox"]]
         settings = {}
         try:
             for l in lst:
@@ -61,7 +61,7 @@ class mywindow(QtWidgets.QMainWindow):
         try:
             settings["custom_chi_spinbox"] = self.ui.custom_chi_spinbox.value()
             settings["opencv_spinbox"] = self.ui.opencv_spinbox.value()
-            settings["numpy_spinbox"] = self.ui.numpy_spinbox.value()
+            settings["scipy_spinbox"] = self.ui.scipy_spinbox.value()
             settings["scene_detect_spinbox"] = self.ui.scene_detect_spinbox.value()
         except Exception as e:
             print(e)
@@ -85,13 +85,13 @@ class mywindow(QtWidgets.QMainWindow):
         except Exception as e:
             print(e)
         config.set('Histogram Comparison','Custom Chi', x["custom_chi_checkbox"])
-        config.set('Histogram Comparison','Numpy', x["numpy_checkbox"])
+        config.set('Histogram Comparison','scipy', x["scipy_checkbox"])
         config.set('Histogram Comparison','OpenCV', x["opencv_checkbox"])
         try:
             config.set('Histogram Thresholds','Custom Chi', str(x["custom_chi_spinbox"]))
         except Exception as e:
             print(e)
-        config.set('Histogram Thresholds','Numpy', str(x["numpy_spinbox"]))
+        config.set('Histogram Thresholds','scipy', str(x["scipy_spinbox"]))
         config.set('Histogram Thresholds','OpenCV', str(x["opencv_spinbox"]))
         config.set('Facial Recognition', 'Check For Face In Video', x['check_face_checkbox'])
         config.set('Facial Recognition', 'Crop Face', x['crop_face_checkbox'])
@@ -112,10 +112,31 @@ class mywindow(QtWidgets.QMainWindow):
         print('button clicked')
     
     def login_button(self):
-        vidcap = cv2.VideoCapture(P.get_x(self))
+        config.read("next.ini")
+        video = P.get_x(self)
+        threshold = config.get("Scene Detect", "scene detect threshold") 
+        vidcap = cv2.VideoCapture(video)
         lst1 = frame_lst(vidcap)
-        print(get_comparison(lst1))
-    
+        try:
+            if config.get("Facial Recognition", "check for face in video"):
+                count = 0
+                while count < len(lst1):
+                    args = {"image": lst1[str(count)], "threshold": 0.5}
+                    lst1[str(count)] = detect_face(args)
+                    count += 1
+        except Exception as e:
+            print(e)
+                    
+        try:    
+            print(get_comparison(lst1))
+            if config.get("Scene Detect", "Scene detect on") == 'True':
+                x = scene_detector.find_scenes(self,video, threshold)
+                if len(x) > 1:
+                    print("Jump cuts detected")
+                    
+        except Exception as e:
+            print(e)
+            
     def default_config(self):
         # lets create that config file for next time...
         try:
@@ -131,15 +152,15 @@ class mywindow(QtWidgets.QMainWindow):
         except Exception as e:
             print(e)
         config.set('Histogram Comparison','Custom Chi', 'True')
-        config.set('Histogram Comparison','Numpy', 'False')
+        config.set('Histogram Comparison','scipy', 'False')
         config.set('Histogram Comparison','OpenCV', 'False')
         config.set('Histogram Thresholds','Custom Chi', '0.009')
-        config.set('Histogram Thresholds','Numpy', '0')
+        config.set('Histogram Thresholds','scipy', '0')
         config.set('Histogram Thresholds','OpenCV', '0')
         config.set('Facial Recognition', 'Check For Face In Video', 'False')
         config.set('Facial Recognition', 'Crop Face', 'False')
-        config.set('Scene Detect', 'Scene Detect on', 'False')
-        config.set('Scene Detect', 'Scene Detect Threshold', '0')
+        config.set('Scene Detect', 'Scene Detect on', 'True')
+        config.set('Scene Detect', 'Scene Detect Threshold', '6')
         try:
             config.write(cfgfile)
         except: 
@@ -174,11 +195,11 @@ class mywindow(QtWidgets.QMainWindow):
         else:
             self.ui.opencv_checkbox.isChecked = False
         
-    def numpy_checked(self, state):
+    def scipy_checked(self, state):
         if state == QtCore.Qt.Checked:
-            self.ui.numpy_checkbox.isChecked = True
+            self.ui.scipy_checkbox.isChecked = True
         else:
-            self.ui.numpy_checkbox.isChecked = False
+            self.ui.scipy_checkbox.isChecked = False
     
     def check_face_checked(self, state):
         if state == QtCore.Qt.Checked:

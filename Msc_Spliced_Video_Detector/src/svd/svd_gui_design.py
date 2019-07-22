@@ -110,9 +110,9 @@ class Ui_MainWindow(object):
         self.opencv_checkbox = QtWidgets.QCheckBox(self.verticalLayoutWidget_2)
         self.opencv_checkbox.setObjectName("opencv_checkbox")
         self.verticalLayout_2.addWidget(self.opencv_checkbox)
-        self.numpy_checkbox = QtWidgets.QCheckBox(self.verticalLayoutWidget_2)
-        self.numpy_checkbox.setObjectName("numpy_checkbox")
-        self.verticalLayout_2.addWidget(self.numpy_checkbox)
+        self.scipy_checkbox = QtWidgets.QCheckBox(self.verticalLayoutWidget_2)
+        self.scipy_checkbox.setObjectName("scipy_checkbox")
+        self.verticalLayout_2.addWidget(self.scipy_checkbox)
         self.frame_2 = QtWidgets.QFrame(self.tab_2)
         self.frame_2.setGeometry(QtCore.QRect(10, 210, 311, 211))
         self.frame_2.setFrameShape(QtWidgets.QFrame.Box)
@@ -147,15 +147,15 @@ class Ui_MainWindow(object):
         self.opencv_spinbox.setSingleStep(0.001)
         self.opencv_spinbox.setObjectName("opencv_spinbox")
         self.verticalLayout.addWidget(self.opencv_spinbox)
-        self.hs_numpy_label = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.hs_numpy_label.setObjectName("hs_numpy_label")
-        self.verticalLayout.addWidget(self.hs_numpy_label)
-        self.numpy_spinbox = QtWidgets.QDoubleSpinBox(self.verticalLayoutWidget)
-        self.numpy_spinbox.setDecimals(3)
-        self.numpy_spinbox.setMaximum(5.0)
-        self.numpy_spinbox.setSingleStep(0.001)
-        self.numpy_spinbox.setObjectName("numpy_spinbox")
-        self.verticalLayout.addWidget(self.numpy_spinbox)
+        self.hs_scipy_label = QtWidgets.QLabel(self.verticalLayoutWidget)
+        self.hs_scipy_label.setObjectName("hs_scipy_label")
+        self.verticalLayout.addWidget(self.hs_scipy_label)
+        self.scipy_spinbox = QtWidgets.QDoubleSpinBox(self.verticalLayoutWidget)
+        self.scipy_spinbox.setDecimals(3)
+        self.scipy_spinbox.setMaximum(5.0)
+        self.scipy_spinbox.setSingleStep(0.001)
+        self.scipy_spinbox.setObjectName("scipy_spinbox")
+        self.verticalLayout.addWidget(self.scipy_spinbox)
         self.frame_3 = QtWidgets.QFrame(self.tab_2)
         self.frame_3.setGeometry(QtCore.QRect(340, 10, 321, 191))
         self.frame_3.setFrameShape(QtWidgets.QFrame.Box)
@@ -250,10 +250,10 @@ class Ui_MainWindow(object):
             else:
                 self.custom_chi_checkbox.setChecked(False)
                 
-            if config.get("Histogram Comparison", "numpy") == "True":
-                self.numpy_checkbox.setChecked(True)
+            if config.get("Histogram Comparison", "scipy") == "True":
+                self.scipy_checkbox.setChecked(True)
             else:
-                self.numpy_checkbox.setChecked(False)
+                self.scipy_checkbox.setChecked(False)
                 
             if config.get("Histogram Comparison", "opencv") == "True":
                 self.opencv_checkbox.setChecked(True)
@@ -279,8 +279,9 @@ class Ui_MainWindow(object):
             print("no config found")
         try:
             self.custom_chi_spinbox.setValue(float(config.get("Histogram Thresholds", "Custom Chi")))
-            self.numpy_spinbox.setValue(float(config.get("Histogram Thresholds", "numpy")))
+            self.scipy_spinbox.setValue(float(config.get("Histogram Thresholds", "scipy")))
             self.opencv_spinbox.setValue(float(config.get("Histogram Thresholds", "opencv")))
+            self.scene_detect_spinbox.setValue(float(config.get("Scene Detect", "Scene detect threshold")))
             
         except Exception as e:
             print(e)
@@ -299,11 +300,11 @@ class Ui_MainWindow(object):
         self.histogram__comparison_label.setText(_translate("MainWindow", "Histogram Comparison"))
         self.custom_chi_checkbox.setText(_translate("MainWindow", "Custom Chi"))
         self.opencv_checkbox.setText(_translate("MainWindow", "OpenCV"))
-        self.numpy_checkbox.setText(_translate("MainWindow", "NumPy"))
+        self.scipy_checkbox.setText(_translate("MainWindow", "scipy"))
         self.histogram_similarity_label.setText(_translate("MainWindow", "Histogram similarity threshold"))
         self.hs_custom_chi_label.setText(_translate("MainWindow", "Custom Chi"))
         self.hs_opencv_label.setText(_translate("MainWindow", "OpenCV"))
-        self.hs_numpy_label.setText(_translate("MainWindow", "NumPy"))
+        self.hs_scipy_label.setText(_translate("MainWindow", "scipy"))
         self.facial_recognition_label.setText(_translate("MainWindow", "Facial Recognition"))
         self.check_face_checkbox.setText(_translate("MainWindow", "Check for face in video"))
         self.crop_face_checkbox.setText(_translate("MainWindow", "Crop Face"))
