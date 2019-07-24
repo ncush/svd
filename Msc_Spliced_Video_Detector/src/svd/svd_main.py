@@ -40,10 +40,12 @@ class Capture():
         cv2.destroyAllWindows()
     def endCapture(self):
         self.capturing = False
+        cv2.destroyAllWindows()
+        
         
     def quitCapture(self):
         print ("pressed Quit")
-        P.set_x(self, "cam_video.mp4")
+        
         cap = self.c
         cv2.destroyAllWindows()
         cap.release()
@@ -59,6 +61,17 @@ class P:
 
     def set_x(self, x):
         self.__x = x
+        
+class Dialog_Label:
+
+    def __init__(self,text):
+        self.__text = text
+
+    def get_text(self):
+        return self.__text
+
+    def set_text(self, text):
+        self.__text = text
         
 class scene_detector():
     #finds scenes, returns list of scenes.

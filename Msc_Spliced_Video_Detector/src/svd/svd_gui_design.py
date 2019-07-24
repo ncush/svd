@@ -7,8 +7,10 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QCoreApplication
 import random
 import configparser
+from svd.svd_main import Dialog_Label
 config = configparser.ConfigParser()
 
 class Ui_MainWindow(object):
@@ -319,4 +321,68 @@ class Ui_MainWindow(object):
         self.actionHelp.setText(_translate("MainWindow", "Help"))
         self.actionAbout.setText(_translate("MainWindow", "About"))
         self.actionQuit.setText(_translate("MainWindow", "Quit"))
+        
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(367, 113)
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setGeometry(QtCore.QRect(20, 20, 231, 41))
+        font = QtGui.QFont()
+        font.setPointSize(22)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.ok_button = QtWidgets.QPushButton(Dialog)
+        self.ok_button.setGeometry(QtCore.QRect(190, 80, 75, 23))
+        self.ok_button.setObjectName("ok_button")
+        self.quit_button = QtWidgets.QPushButton(Dialog)
+        self.quit_button.setGeometry(QtCore.QRect(280, 80, 75, 23))
+        self.quit_button.setObjectName("quit_button")
 
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        
+        self.quit_button.clicked.connect(QCoreApplication.instance().quit)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.label.setText(_translate("Dialog", "Login Successful"))
+        self.ok_button.setText(_translate("Dialog", "Ok"))
+        self.quit_button.setText(_translate("Dialog", "Quit"))
+        
+        
+    def dialog_ok(self):
+        print("Ok")
+        
+    def dialog_quit(self):
+        print("quit")
+        
+class Ui_Dialog2(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(367, 113)
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setGeometry(QtCore.QRect(20, 20, 250, 41))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.ok_button = QtWidgets.QPushButton(Dialog)
+        self.ok_button.setGeometry(QtCore.QRect(190, 80, 75, 23))
+        self.ok_button.setObjectName("ok_button")
+        self.quit_button = QtWidgets.QPushButton(Dialog)
+        self.quit_button.setGeometry(QtCore.QRect(280, 80, 75, 23))
+        self.quit_button.setObjectName("quit_button")
+
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        
+        self.ok_button.clicked.connect(QCoreApplication.instance().quit)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.label.setText(_translate("Dialog", "Login Failed - SceneDetect"))
+        self.ok_button.setText(_translate("Dialog", "Ok"))
+        self.quit_button.setText(_translate("Dialog", "Quit"))

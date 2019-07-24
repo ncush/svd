@@ -8,8 +8,6 @@ Created on 2 Jul 2019
 from scipy.spatial import distance as dist
 import matplotlib.pyplot as plt
 import numpy as np
-#import argparse
-#import glob
 import cv2
 import scenedetect
 import configparser
@@ -46,17 +44,19 @@ def detect_face(args):
         if confidence > args["threshold"]:
             # compute the (x, y)-coordinates of the bounding box for the
             # object
-            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-            (startX, startY, endX, endY) = box.astype("int")
-            print(box)
-            
-            
-            crop_img = image[startY: endY, startX: endX]
-            #cv2.imshow("cropped", crop_img)
-            #cv2.waitKey(0)
-            return crop_img
-
-
+            if args["crop"]:
+                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                (startX, startY, endX, endY) = box.astype("int")
+                print(box)
+                
+                
+                crop_img = image[startY: endY, startX: endX]
+                #cv2.imshow("cropped", crop_img)
+                #cv2.waitKey(0)
+                return crop_img
+            return True
+        else:
+            return False
 
 
 
@@ -75,6 +75,7 @@ def frame_lst(vidcap):
     return lst1
     
 #takes in a list of images, creates histograms for images
+
 def create_histograms(lst1, frame1, frame2):
     
     # initialize the index dictionary to store the image name
@@ -92,7 +93,6 @@ def create_histograms(lst1, frame1, frame2):
     while count < frame2:
         # extract the image filename (assumed to be unique) and
         # load the image, updating the images dictionary
-        #
         count += 1
         filename = str(count)
         image = lst[str(count)]
@@ -104,7 +104,6 @@ def create_histograms(lst1, frame1, frame2):
         # extract a 3D RGB color histogram from the image,
         # using 8 bins per channel, normalize, and update
         # the index
-        #print('success')
         hist = cv2.calcHist([image], [0, 1, 2], None, [8, 8, 8],
             [0, 256, 0, 256, 0, 256])
         
@@ -113,6 +112,7 @@ def create_histograms(lst1, frame1, frame2):
     return {'images':images, 'index': index}
 
 # Uses histograms to calculate image similarity
+
 def chi2_distance(histA, histB, eps=1e-10):
     # compute the chi-squared distance
     d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
@@ -121,42 +121,85 @@ def chi2_distance(histA, histB, eps=1e-10):
     # return the chi-squared distance
     return d
 
-def compare_histograms_opencv(images, index, frame1, frame2, sus):
+def get_method_opencv():
+    config.read("next.ini")
+    if config.get("Methods", "opencv") == "correlation":
+        OPENCV_METHODS = ("Correlation", cv2.HISTCMP_CORREL)
+        
+    if config.get("Methods", "opencv") == "chi-squared":
+        OPENCV_METHODS = ("Chi-Squared", cv2.HISTCMP_CHISQR)
+        
+    if config.get("Methods", "opencv") == "intersection":
+        OPENCV_METHODS = ("Intersection", cv2.HISTCMP_INTERSECT)
     
-    OPENCV_METHODS = (
-    ("Correlation", cv2.HISTCMP_CORREL),
-    ("Chi-Squared", cv2.HISTCMP_CHISQR),
-    ("Intersection", cv2.HISTCMP_INTERSECT),
-    ("Hellinger", cv2.HISTCMP_BHATTACHARYYA))
-     
+    if config.get("Methods", "opencv") == "hellinger":
+        OPENCV_METHODS = ("Hellinger", cv2.HISTCMP_BHATTACHARYYA),
+        
+    else:
+        OPENCV_METHODS = ("Hellinger", cv2.HISTCMP_BHATTACHARYYA),
+        
+    return OPENCV_METHODS
+
+def get_method_scipy():
+    config.read('next.ini')
+    if config.get("Methods", "scipy") == "euclidean":
+        SCIPY_METHODS = ("Euclidean", dist.euclidean),
+        
+    if config.get("Methods", "scipy") == "manhattan":
+        SCIPY_METHODS = ("Manhattan", dist.cityblock),
+        
+    if config.get("Methods", "scipy") == "chebysev":
+        SCIPY_METHODS = ("Chebysev", dist.chebyshev),
+    
+    else:
+        SCIPY_METHODS = ("Euclidean", dist.euclidean),
+    
+    return SCIPY_METHODS
+        
+def compare_histograms_opencv(images, index, frame1, frame2, sus):
+    OPENCV_METHODS = get_method_opencv()
     # loop over the comparison methods
     for (methodName, method) in OPENCV_METHODS:
         # initialize the results dictionary and the sort
         # direction
-        results = {}
-        reverse = False
-     
+        try:
+            results = {}
+            reverse = False
+        except Exception as e:
+            print(1)
+            print(e)
         # if we are using the correlation or intersection
         # method, then sort the results in reverse order
-        if methodName in ("Correlation", "Intersection"):
-            reverse = True
+        try:
+            if methodName in ("Correlation", "Intersection"):
+                reverse = True
+        except Exception as e:
+            print(2)
+            print(e)
      
         # loop over the index
-        for (k, hist) in index.items():
-            # compute the distance between the two histograms
-            # using the method and update the results dictionary
-            d = cv2.compareHist(index[str(frame1)], hist, method)
-            results[k] = d
-     
+        try:
+            for (k, hist) in index.items():
+                # compute the distance between the two histograms
+                # using the method and update the results dictionary
+                try:
+                    d = cv2.compareHist(index[str(frame1)], hist, method)
+                    results[k] = d
+                except Exception as e:
+                    print(4)
+                    print(e)
+        except Exception as e:
+            print(3)
+            print(e)
         # sort the results
         results = sorted([(v, k) for (k, v) in results.items()], reverse = reverse)
     
         
         # initialize the results figure
     fig = plt.figure("Results: %s" % (methodName))
-    fig.suptitle(methodName, fontsize = 20)
+    fig.suptitle("Login Failed " + methodName, fontsize = 20)
         
-        # loop over the results
+        # loop over the resultss
     if sus:
         for (i, (v, k)) in enumerate(results):
                 # show the result
@@ -173,10 +216,7 @@ def compare_histograms_opencv(images, index, frame1, frame2, sus):
 
 def compare_histograms_scipy(images, index, frame1, frame2, sus):
     
-    SCIPY_METHODS = (
-        ("Euclidean", dist.euclidean),
-        ("Manhattan", dist.cityblock),
-        ("Chebysev", dist.chebyshev))
+    SCIPY_METHODS = get_method_scipy()
      
     # loop over the comparison methods
     for (methodName, method) in SCIPY_METHODS:
@@ -197,7 +237,7 @@ def compare_histograms_scipy(images, index, frame1, frame2, sus):
         
         # initialize the results figure
     fig = plt.figure("Results: %s" % (methodName))
-    fig.suptitle(methodName, fontsize = 20)
+    fig.suptitle("Login Failed " + methodName, fontsize = 20)
         
         # loop over the results
     if sus:
@@ -215,6 +255,7 @@ def compare_histograms_scipy(images, index, frame1, frame2, sus):
     return results[1]
     
 #takes in histograms, and compares them using chi2_distance, and then sorts and prints results. 
+
 def compare_histograms_custom_chi(images, index, frame1, frame2, sus):
     # initialize the results dictionary
     results = {}
@@ -233,7 +274,7 @@ def compare_histograms_custom_chi(images, index, frame1, frame2, sus):
         
         # initialize the results figure
     fig = plt.figure("Results: Custom Chi-Squared")
-    fig.suptitle("Custom Chi-Squared", fontsize=20)
+    fig.suptitle("Login Failed - Custom Chi-Squared", fontsize=20)
         
         # loop over the results
     if sus:
@@ -286,11 +327,11 @@ def get_scipy(lst1, frame1, frame2):
     
 
 #Gets histogram comparisons depending on what has been selected in settings.
+
 def get_comparison(lst1):
     count = 0
     config.read("next.ini")
     x = {}
-    print(len(lst1))
     if config.get("Histogram Comparison", "custom chi") == "True":
         while count + 2 < len(lst1):
             frame1 = count + 1 
@@ -300,6 +341,8 @@ def get_comparison(lst1):
             except Exception as e:
                 print(e)
                 break
+            if x["custom_chi"] == True:
+                return True
             count += 1 
     
     count = 0
@@ -309,23 +352,26 @@ def get_comparison(lst1):
             frame2 = count + 2
             try:
                 x["opencv"] = get_opencv(lst1, frame1, frame2)   
-            except:
-                print('end')
+            except Exception as e:
+                print(e)
                 break
+            if x["custom_chi"] == True:
+                return True
             count += 1 
     
-        count = 0
-        
+    count = 0    
     if config.get("Histogram Comparison", "scipy") == "True":
         while count < len(lst1):
             frame1 = count + 1 
             frame2 = count + 2
             try:
                 x["scipy"] = get_scipy(lst1, frame1, frame2)   
-            except:
-                print('end')
+            except Exception as e:
+                print(e)
                 break
+            if x["scipy"] == True:
+                return True
             count += 1 
 
-    return x
+    return False
 
