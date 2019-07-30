@@ -13,6 +13,9 @@ from scenedetect.stats_manager import StatsManager
 # For content-aware scene detection:
 from scenedetect.detectors.content_detector import ContentDetector
 
+#Most of this code is taken directly from 
+#http://breakthrough.github.io/PySceneDetect/index.html
+
 class SceneDetector():
     #finds scenes, returns list of scenes.
     def find_scenes(self,video_path, threshold):

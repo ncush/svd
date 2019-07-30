@@ -3,8 +3,6 @@ Created on 2 Jul 2019
 
 @author: Niall
 '''
-
-# import the necessary packages
 from scipy.spatial import distance as dist
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +10,9 @@ import cv2
 import configparser
 
 config = configparser.ConfigParser()
+
+#Some of the code in this document was taken and altered from
+#https://www.pyimagesearch.com/2014/07/14/3-ways-compare-histograms-using-opencv-python/
 
 class HistogramAnalysis():        
     #takes in a list of images, creates histograms for images
@@ -51,7 +52,6 @@ class HistogramAnalysis():
         return {'images':images, 'index': index}
     
     # Uses histograms to calculate image similarity
-    
     def chi2_distance(self, histA, histB, eps=1e-10):
         # compute the chi-squared distance
         d = 0.5 * np.sum([((a - b) ** 2) / (a + b + eps)
@@ -60,6 +60,7 @@ class HistogramAnalysis():
         # return the chi-squared distance
         return d
     
+    #gets the method from config for opencv
     def get_method_opencv(self):
         config.read("next.ini")
         if config.get("Methods", "opencv") == "correlation":
@@ -79,6 +80,7 @@ class HistogramAnalysis():
             
         return OPENCV_METHODS
     
+    #gets the method from config for scipy
     def get_method_scipy(self):
         config.read('next.ini')
         if config.get("Methods", "scipy") == "euclidean":
@@ -95,6 +97,7 @@ class HistogramAnalysis():
         
         return SCIPY_METHODS
             
+    #calculates the distance between histograms using an opencv method
     def compare_histograms_opencv(self, images, index, frame1, frame2, sus):
         OPENCV_METHODS = self.get_method_opencv()
         # loop over the comparison methods
@@ -107,8 +110,7 @@ class HistogramAnalysis():
             except Exception as e:
                 print(1)
                 print(e)
-            # if we are using the correlation or intersection
-            # method, then sort the results in reverse order
+            # correlation and intersection need to be reversed
             try:
                 if methodName in ("Correlation", "Intersection"):
                     reverse = True
@@ -138,7 +140,7 @@ class HistogramAnalysis():
         fig = plt.figure("Results: %s" % (methodName))
         fig.suptitle("Login Failed " + methodName, fontsize = 20)
             
-            # loop over the resultss
+        #plot the result if it is sus
         if sus:
             for (i, (v, k)) in enumerate(results):
                     # show the result
@@ -148,7 +150,7 @@ class HistogramAnalysis():
                 plt.axis("off")
                     
                 
-            # show the custom method
+        # show the results if sus
         if sus:
             plt.show()
         return results[1]
@@ -230,6 +232,9 @@ class HistogramAnalysis():
             plt.show()
         return results[1]
     
+    #Creates the histogram and compares it to the next one
+    #if it returns a value higher than threshold
+    #it is suspicious
     def get_custom_chi(self, lst1, frame1, frame2):
         sus = False
         x = self.create_histograms(lst1, frame1, frame2)
@@ -241,6 +246,9 @@ class HistogramAnalysis():
             self.compare_histograms_custom_chi(x['images'], x['index'], frame1, frame2, sus)
         return sus
     
+    #Creates the histogram and compares it to the next one
+    #if it returns a value higher than threshold
+    #it is suspicious
     def get_opencv(self, lst1, frame1, frame2):
         sus = False
         x = self.create_histograms(lst1, frame1, frame2)
@@ -252,6 +260,9 @@ class HistogramAnalysis():
             self.compare_histograms_opencv(x['images'], x['index'], frame1, frame2, sus)
         return sus
     
+    #Creates the histogram and compares it to the next one
+    #if it returns a value higher than threshold
+    #it is suspicious
     def get_scipy(self, lst1, frame1, frame2):
         sus = False
         x = self.create_histograms(lst1, frame1, frame2)
@@ -266,7 +277,7 @@ class HistogramAnalysis():
         
     
     #Gets histogram comparisons depending on what has been selected in settings.
-    
+    #If a suspicious frame is found it returns True
     def get_comparison(self, lst1):
         count = 0
         config.read("next.ini")

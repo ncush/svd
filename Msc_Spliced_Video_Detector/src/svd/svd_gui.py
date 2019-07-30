@@ -164,9 +164,7 @@ class mywindow(QtWidgets.QMainWindow):
     #Applies analysis on the video
     #Checks to see if methods should be applied and then applies them
     def login_button(self):
-        
-        self.ui.info_label.setText(" ")
-        
+        self.ui.info_label.setText("Please be patient, face detection \n can take up to 30 seconds")
         #gets the file name
         try:
             video = P.get_x(self)
@@ -217,10 +215,13 @@ class mywindow(QtWidgets.QMainWindow):
                     
         try:    
             success = True
+            #Calls histogram comparison function
+            sus = hist.get_comparison(lst1)
+            self.ui.info_label.setText(" ")
             
-            x = hist.get_comparison(lst1)
-            
-            if x == False:
+            #if the histogram comparison function returns false
+            #check to see if s
+            if sus == False:
                 if config.get("Scene Detect", "Scene detect on") == 'True':
                     y = SceneDetector.find_scenes(self,video, threshold)
                     if len(y) > 1:
@@ -229,17 +230,20 @@ class mywindow(QtWidgets.QMainWindow):
                         self.ui.info_label.setText("Scene Detect - splice detected")
                 if success:
                     self.ui.info_label.setText("Success! No splices detected.")
-                    
+            if sus == True:
+                self.ui.info_label.setText("Suspicious frames detected")        
         except Exception as e:
             print(e)
             
+    #sets settings to default
     def default_config(self):
-        # lets create that config file for next time...
+        # Creates config file if it doesn't exist.
+        #Opens config file to be edited
         try:
             cfgfile = open("next.ini",'w')
         except:
             print("something went wrong with open")
-        # add the settings to the structure of the file, and lets write it out...
+        # adds sections to config file if they don't exist
         try:
             config.add_section('Histogram Comparison')
             config.add_section('Histogram Thresholds')
@@ -270,12 +274,14 @@ class mywindow(QtWidgets.QMainWindow):
         except:
             print("sometjing went wrong close")
         print('default settings')
+        #refreshes the GUI to represent the new changes
         self.ui.refresh_widgets()
     
     #opens browser to select file.
     def browse_for_file(self):
         y = QtWidgets.QFileDialog.getOpenFileName()
         try:
+            #sets property to file name
             P.set_x(self, y[0])
         except Exception as e:
             print(e)
