@@ -5,19 +5,18 @@ Created on 26 Jul 2019
 '''
 import numpy as np
 import cv2
-
 class FaceDetection():
+    #detects face in 
     def face_detect(self, args):
-        # load our serialized model from disk
-        print("[INFO] loading model...")
+        #Loads serialised model
         net = cv2.dnn.readNetFromCaffe("deploy.prototxt.txt", "res10_300x300_ssd_iter_140000.caffemodel")
         images = args["image"]
         count = 0
+        x = {}
         while count + 1 < len(images):
             # load the input image and construct an input blob for the image
             # by resizing to a fixed 300x300 pixels and then normalizing it
             image = images[str(count)]
-            count += 1 
             (h, w) = image.shape[:2]
             blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 1.0,
                (300, 300), (104.0, 177.0, 123.0))
@@ -27,7 +26,7 @@ class FaceDetection():
             print("[INFO] computing object detections...")
             net.setInput(blob)
             detections = net.forward()
-            x = False
+            x["face"] = "False"
             # loop over the detections
             for i in range(0, detections.shape[2]):
                 # extract the confidence (i.e., probability) associated with the
@@ -48,8 +47,10 @@ class FaceDetection():
                         crop_img = image[startY: endY, startX: endX]
                         #cv2.imshow("cropped", crop_img)
                         #cv2.waitKey(0)
-                        return crop_img
-                    x = True
-            if not x:
-                return False
+                        images[str(count)] = crop_img
+                        x["crop"] = images
+                    x["face"] = "True"
+                    count += 1 
+            if not x["face"]:
+                return x
         return True               

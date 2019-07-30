@@ -14,8 +14,9 @@ from svd.svd_capture import Capture, P
 from svd.svd_scene_detector import SceneDetector
 from svd.svd_frame_lst import FrameList
 import cv2
-
+import os
 import sys
+
 framelist = FrameList()
 hist = HistogramAnalysis()
 facedetect = FaceDetection()
@@ -36,8 +37,13 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui.record_video_button.clicked.connect(self.capture.startCapture)
         self.ui.stop_recording_button.clicked.connect(self.capture.endCapture)
         self.ui.browse_video_button.clicked.connect(self.browse_for_file)
-        
+        #Main button to begin analysis
         self.ui.pushButton.clicked.connect(self.login_button)
+        
+        #Menu bar
+        self.ui.actionHelp.triggered.connect(self.help_menu_button)
+        self.ui.actionAbout.triggered.connect(self.config_menu_button)
+        self.ui.actionQuit.triggered.connect(self.quit_menu_button)
         
         ##settings
         self.ui.default_button.clicked.connect(self.default_config)
@@ -51,6 +57,26 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui.crop_face_checkbox.stateChanged.connect(self.crop_face_checked)
         self.ui.scene_detect_checkbox.stateChanged.connect(self.scene_detect_checked)
         
+    def update_label(self, text):
+        self.ui.info_label.setText(text)
+        
+    #Opens config file
+    def config_menu_button(self):
+        try:
+            os.startfile("next.ini")
+        except Exception as e:
+            print(e)
+    
+    #opens help document
+    def help_menu_button(self):
+        try:
+            os.startfile("svd_help_document.pdf")
+        except Exception as e:
+            print(e)
+            
+    #Quits program
+    def quit_menu_button(self):
+        sys.exit()
         
     #loops through checkboxes to see if they are checked or not
     def get_settings(self):
@@ -65,7 +91,8 @@ class mywindow(QtWidgets.QMainWindow):
                     settings[l[1]] = "False"
         except Exception as e:
             print(e)
-        
+            
+        #Checks spin boxes for new values values
         try:
             settings["custom_chi_spinbox"] = self.ui.custom_chi_spinbox.value()
             settings["opencv_spinbox"] = self.ui.opencv_spinbox.value()
@@ -73,6 +100,8 @@ class mywindow(QtWidgets.QMainWindow):
             settings["scene_detect_spinbox"] = self.ui.scene_detect_spinbox.value()
         except Exception as e:
             print(e)
+        
+        #checks config file for whether the method has been changed
         try:
             settings["scipy_method"] = config.get("Methods", "scipy")
             settings["opencv_method"] = config.get("Methods", "opencv")
@@ -81,16 +110,18 @@ class mywindow(QtWidgets.QMainWindow):
             print(e)
         return settings
     
+    #saves new settings chosen on the GUI to config file
     def save_settings(self):
-              
+        #gets the settings, saves them to new dictionary    
         x = self.get_settings()
         print(x)
         
+        #opens config file so we can write to it.
         try:
             cfgfile = open("next.ini",'w')
         except:
             print("something went wrong with open")
-        # add the settings to the structure of the file, and lets write it out...
+        #if these sections don't exist they are added
         try:
             config.add_section('Histogram Comparison')
             config.add_section('Histogram Thresholds')
@@ -99,6 +130,8 @@ class mywindow(QtWidgets.QMainWindow):
             config.add_section('Methods')
         except Exception as e:
             print(e)
+            
+        #updates the config file
         config.set('Histogram Comparison','Custom Chi', x["custom_chi_checkbox"])
         config.set('Histogram Comparison','scipy', x["scipy_checkbox"])
         config.set('Histogram Comparison','OpenCV', x["opencv_checkbox"])
@@ -124,47 +157,63 @@ class mywindow(QtWidgets.QMainWindow):
         except:
             print("something went wrong close")
         print('Save Settings')
+        
+        #refreshes the GUI to represent the new settings
         self.ui.refresh_widgets()
         
-    def btnClicked(self):
-        print('button clicked')
-    
+    #Applies analysis on the video
+    #Checks to see if methods should be applied and then applies them
     def login_button(self):
+        
         self.ui.info_label.setText(" ")
+        
+        #gets the file name
         try:
             video = P.get_x(self)
         except Exception as e:
             print(e)
             self.ui.info_label.setText("no file selected")
             return
+        
+        #checks to make sure file is mp4 format
         if not video.endswith('.mp4'):
             self.ui.info_label.setText("please select an mp4 file")
             return 
+        
         config.read("next.ini")
         threshold = config.get("Scene Detect", "scene detect threshold")
-         
+        
+        #initialises video so it can be interacted with
         vidcap = cv2.VideoCapture(video)
         
+        #creates dictionary of frames from video
         lst1 = framelist.frame_lst(vidcap)
+        #checks that file is not too long
         if len(lst1) > 450:
             self.ui.info_label.setText("File must be 15 seconds or less")
             return
         
         try:
+            #checks if check for face has been selected
             if config.get("Facial Recognition", "check for face in video") == "True":
                 crop = False
+                #checks if crop face has been selected
                 if config.get("Facial Recognition", "crop face") == "True":
                     crop = True
+                #runs the facedetection method 
                 args = {"image": lst1, "threshold": float(config.get("Facial Recognition", "threshold")), "crop": crop}
                 face_detected = facedetect.face_detect(args)
-                if face_detected['face'] == False:
-                    print("No face detected")
+                #if no face is detected, user is informed and function is terminated
+                if face_detected['face'] == "False":
+                    self.ui.info_label.setText("No face detected")
                     return 
+                #if crop face is selected, the dictionary of frames is replaced with new dictionary of cropped frames
                 if crop:
                     lst1 = face_detected['crop']
-                self.ui.info_label.setText(" ")
+                self.ui.info_label.setText("Face detection and cropping complete" )
         except Exception as e:
             print(e)
+            
                     
         try:    
             success = True

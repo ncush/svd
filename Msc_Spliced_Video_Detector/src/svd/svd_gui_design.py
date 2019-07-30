@@ -10,10 +10,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QCoreApplication
 import random
 import configparser
-from svd.svd_capture import P
 config = configparser.ConfigParser()
 
 class Ui_MainWindow(object):
+    #sets up objects to be displayed as a GUI
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(682, 518)
@@ -272,8 +272,8 @@ class Ui_MainWindow(object):
             else:
                 self.scene_detect_checkbox.setChecked(False)
                 
-        except:
-            print("no config found")
+        except Exception as e:
+            print(e)
         try:
             self.custom_chi_spinbox.setValue(float(config.get("Histogram Thresholds", "Custom Chi")))
             self.scipy_spinbox.setValue(float(config.get("Histogram Thresholds", "scipy")))
@@ -282,6 +282,8 @@ class Ui_MainWindow(object):
             
         except Exception as e:
             print(e)
+            
+    #assigns text to the objects
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Spliced Video Detector"))
