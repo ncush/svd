@@ -10,7 +10,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QCoreApplication
 import random
 import configparser
-from svd.svd_main import Dialog_Label
+from svd.svd_capture import P
 config = configparser.ConfigParser()
 
 class Ui_MainWindow(object):
@@ -25,9 +25,12 @@ class Ui_MainWindow(object):
         self.tabWidget.setObjectName("tabWidget")
         self.login_tab = QtWidgets.QWidget()
         self.login_tab.setObjectName("login_tab")
+        font = QtGui.QFont()
+        font.setPointSize(12)
         self.main_title_label = QtWidgets.QLabel(self.login_tab)
-        self.main_title_label.setGeometry(QtCore.QRect(270, 20, 201, 41))
+        self.main_title_label.setGeometry(QtCore.QRect(250, 20, 201, 41))
         self.main_title_label.setObjectName("main_title_label")
+        self.main_title_label.setFont(font)
         self.frame_4 = QtWidgets.QFrame(self.login_tab)
         self.frame_4.setGeometry(QtCore.QRect(10, 80, 301, 271))
         self.frame_4.setFrameShape(QtWidgets.QFrame.Box)
@@ -39,22 +42,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_4)
         self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.verticalLayout_4.addItem(spacerItem)
-        self.user_name_label = QtWidgets.QLabel(self.verticalLayoutWidget_4)
-        self.user_name_label.setObjectName("user_name_label")
-        self.verticalLayout_4.addWidget(self.user_name_label)
-        self.user_name_line_edit = QtWidgets.QLineEdit(self.verticalLayoutWidget_4)
-        self.user_name_line_edit.setObjectName("user_name_line_edit")
-        self.verticalLayout_4.addWidget(self.user_name_line_edit)
-        self.password_label = QtWidgets.QLabel(self.verticalLayoutWidget_4)
-        self.password_label.setObjectName("password_label")
-        self.verticalLayout_4.addWidget(self.password_label)
-        self.password_line_edit = QtWidgets.QLineEdit(self.verticalLayoutWidget_4)
-        self.password_line_edit.setObjectName("password_line_edit")
-        self.verticalLayout_4.addWidget(self.password_line_edit)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.verticalLayout_4.addItem(spacerItem1)
+        self.label = QtWidgets.QLabel(self.verticalLayoutWidget_4)
+        self.pixmap = QtGui.QPixmap('SVD_LOGO.PNG')
+        self.label.setPixmap(self.pixmap)
+        self.verticalLayout_4.addWidget(self.label)
+        #self.resize(pixmap.width(),pixmap.height())
         self.frame_5 = QtWidgets.QFrame(self.login_tab)
         self.frame_5.setGeometry(QtCore.QRect(350, 80, 301, 271))
         self.frame_5.setFrameShape(QtWidgets.QFrame.Box)
@@ -86,6 +78,9 @@ class Ui_MainWindow(object):
         self.pushButton = QtWidgets.QPushButton(self.login_tab)
         self.pushButton.setGeometry(QtCore.QRect(290, 400, 75, 23))
         self.pushButton.setObjectName("pushButton")
+        self.info_label = QtWidgets.QLabel(self.login_tab)
+        self.info_label.setGeometry(QtCore.QRect(230, 353, 191, 41))
+        self.info_label.setObjectName("info_label")
         self.tabWidget.addTab(self.login_tab, "")
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
@@ -291,14 +286,13 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Spliced Video Detector"))
         self.main_title_label.setText(_translate("MainWindow", "Spliced Video Detector"))
-        self.user_name_label.setText(_translate("MainWindow", "User Name"))
-        self.password_label.setText(_translate("MainWindow", "Password"))
         self.video_confirmation_label.setText(_translate("MainWindow", "Video Confirmation"))
         self.record_video_button.setText(_translate("MainWindow", "Record video"))
         self.stop_recording_button.setText(_translate("MainWindow", "Stop Recording"))
         self.browse_video_button.setText(_translate("MainWindow", "Browse for video"))
-        self.pushButton.setText(_translate("MainWindow", "Login"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.login_tab), _translate("MainWindow", "Login"))
+        self.pushButton.setText(_translate("MainWindow", "Analyse Video"))
+        self.info_label.setText(_translate("MainWindow", ""))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.login_tab), _translate("MainWindow", "Home"))
         self.histogram__comparison_label.setText(_translate("MainWindow", "Histogram Comparison"))
         self.custom_chi_checkbox.setText(_translate("MainWindow", "Custom Chi"))
         self.opencv_checkbox.setText(_translate("MainWindow", "OpenCV"))
@@ -319,70 +313,6 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.actionHelp.setText(_translate("MainWindow", "Help"))
-        self.actionAbout.setText(_translate("MainWindow", "About"))
+        self.actionAbout.setText(_translate("MainWindow", "Config"))
         self.actionQuit.setText(_translate("MainWindow", "Quit"))
         
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(367, 113)
-        self.label = QtWidgets.QLabel(Dialog)
-        self.label.setGeometry(QtCore.QRect(20, 20, 231, 41))
-        font = QtGui.QFont()
-        font.setPointSize(22)
-        self.label.setFont(font)
-        self.label.setObjectName("label")
-        self.ok_button = QtWidgets.QPushButton(Dialog)
-        self.ok_button.setGeometry(QtCore.QRect(190, 80, 75, 23))
-        self.ok_button.setObjectName("ok_button")
-        self.quit_button = QtWidgets.QPushButton(Dialog)
-        self.quit_button.setGeometry(QtCore.QRect(280, 80, 75, 23))
-        self.quit_button.setObjectName("quit_button")
-
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
-        
-        self.quit_button.clicked.connect(QCoreApplication.instance().quit)
-
-    def retranslateUi(self, Dialog):
-        _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.label.setText(_translate("Dialog", "Login Successful"))
-        self.ok_button.setText(_translate("Dialog", "Ok"))
-        self.quit_button.setText(_translate("Dialog", "Quit"))
-        
-        
-    def dialog_ok(self):
-        print("Ok")
-        
-    def dialog_quit(self):
-        print("quit")
-        
-class Ui_Dialog2(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(367, 113)
-        self.label = QtWidgets.QLabel(Dialog)
-        self.label.setGeometry(QtCore.QRect(20, 20, 250, 41))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.label.setFont(font)
-        self.label.setObjectName("label")
-        self.ok_button = QtWidgets.QPushButton(Dialog)
-        self.ok_button.setGeometry(QtCore.QRect(190, 80, 75, 23))
-        self.ok_button.setObjectName("ok_button")
-        self.quit_button = QtWidgets.QPushButton(Dialog)
-        self.quit_button.setGeometry(QtCore.QRect(280, 80, 75, 23))
-        self.quit_button.setObjectName("quit_button")
-
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
-        
-        self.ok_button.clicked.connect(QCoreApplication.instance().quit)
-
-    def retranslateUi(self, Dialog):
-        _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.label.setText(_translate("Dialog", "Login Failed - SceneDetect"))
-        self.ok_button.setText(_translate("Dialog", "Ok"))
-        self.quit_button.setText(_translate("Dialog", "Quit"))

@@ -6,21 +6,24 @@ Created on 11 Jul 2019
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QCoreApplication
 import configparser
-from svd.svd_gui_design import Ui_Dialog
 config = configparser.ConfigParser()
-from svd.svd_gui_design import Ui_MainWindow, Ui_Dialog as Form, Ui_Dialog2 as Form2   # importing our generated file
-from svd.svd_functions import *
-from svd.svd_main import *
+from svd.svd_gui_design import Ui_MainWindow  # importing our generated file
+from svd.svd_histogram_analysis import HistogramAnalysis
+from svd.svd_face_detect import FaceDetection
+from svd.svd_capture import Capture, P
+from svd.svd_scene_detector import SceneDetector
+from svd.svd_frame_lst import FrameList
 import cv2
 
 import sys
- 
+framelist = FrameList()
+hist = HistogramAnalysis()
+facedetect = FaceDetection()
+
 class mywindow(QtWidgets.QMainWindow):
  
     def __init__(self):
         super(mywindow, self).__init__()
-        
-        self.dialog = Ui_Dialog()
         
         self.ui = Ui_MainWindow()
         
@@ -48,20 +51,6 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui.crop_face_checkbox.stateChanged.connect(self.crop_face_checked)
         self.ui.scene_detect_checkbox.stateChanged.connect(self.scene_detect_checked)
         
-        
-    def open_success_dialog(self):
-        dialog = QtWidgets.QDialog()
-        dialog.ui = Form()
-        dialog.ui.setupUi(dialog)
-        dialog.exec_()
-        dialog.show()
-    
-    def open_unsuccessful_dialog(self):
-        dialog = QtWidgets.QDialog()
-        dialog.ui = Form2()
-        dialog.ui.setupUi(dialog)
-        dialog.exec_()
-        dialog.show()
         
     #loops through checkboxes to see if they are checked or not
     def get_settings(self):
@@ -141,49 +130,56 @@ class mywindow(QtWidgets.QMainWindow):
         print('button clicked')
     
     def login_button(self):
+        self.ui.info_label.setText(" ")
         try:
             video = P.get_x(self)
         except Exception as e:
             print(e)
+            self.ui.info_label.setText("no file selected")
+            return
+        if not video.endswith('.mp4'):
+            self.ui.info_label.setText("please select an mp4 file")
+            return 
         config.read("next.ini")
-        threshold = config.get("Scene Detect", "scene detect threshold") 
-        
+        threshold = config.get("Scene Detect", "scene detect threshold")
+         
         vidcap = cv2.VideoCapture(video)
-        lst1 = frame_lst(vidcap)
+        
+        lst1 = framelist.frame_lst(vidcap)
+        if len(lst1) > 450:
+            self.ui.info_label.setText("File must be 15 seconds or less")
+            return
+        
         try:
             if config.get("Facial Recognition", "check for face in video") == "True":
                 crop = False
-                count = 0
-                while count + 1 < len(lst1):
-                    args = {"image": lst1[str(count)], "threshold": float(config.get("Facial Recognition", "threshold")), "crop": crop}
-                    face_detected = detect_face(args)
-                    if face_detected == False:
-                        print("No face detected")
-                        return 
-                    count += 1
                 if config.get("Facial Recognition", "crop face") == "True":
                     crop = True
-                    count = 0
-                    while count + 1 < len(lst1):
-                        args = {"image": lst1[str(count)], "threshold": 0.5, "crop": crop}
-                        lst1[str(count)] = detect_face(args)
-                        count += 1
-                    
+                args = {"image": lst1, "threshold": float(config.get("Facial Recognition", "threshold")), "crop": crop}
+                face_detected = facedetect.face_detect(args)
+                if face_detected['face'] == False:
+                    print("No face detected")
+                    return 
+                if crop:
+                    lst1 = face_detected['crop']
+                self.ui.info_label.setText(" ")
         except Exception as e:
             print(e)
                     
         try:    
             success = True
-            x = get_comparison(lst1)
+            
+            x = hist.get_comparison(lst1)
+            
             if x == False:
                 if config.get("Scene Detect", "Scene detect on") == 'True':
-                    y = scene_detector.find_scenes(self,video, threshold)
+                    y = SceneDetector.find_scenes(self,video, threshold)
                     if len(y) > 1:
                         success = False
                         print("Jump cuts detected")
-                        self.open_unsuccessful_dialog()
+                        self.ui.info_label.setText("Scene Detect - splice detected")
                 if success:
-                    self.open_success_dialog()
+                    self.ui.info_label.setText("Success! No splices detected.")
                     
         except Exception as e:
             print(e)
