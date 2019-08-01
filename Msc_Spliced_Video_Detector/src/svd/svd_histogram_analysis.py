@@ -104,37 +104,27 @@ class HistogramAnalysis():
         for (methodName, method) in OPENCV_METHODS:
             # initialize the results dictionary and the sort
             # direction
-            try:
-                results = {}
-                reverse = False
-            except Exception as e:
-                print(1)
-                print(e)
+
+            results = {}
+            reverse = False
             # correlation and intersection need to be reversed
-            try:
-                if methodName in ("Correlation", "Intersection"):
-                    reverse = True
-            except Exception as e:
-                print(2)
-                print(e)
+          
+            if methodName in ("Correlation", "Intersection"):
+                reverse = True
+
          
             # loop over the index
-            try:
-                for (k, hist) in index.items():
-                    # compute the distance between the two histograms
-                    # using the method and update the results dictionary
-                    try:
-                        d = cv2.compareHist(index[str(frame1)], hist, method)
-                        results[k] = d
-                    except Exception as e:
-                        print(4)
-                        print(e)
-            except Exception as e:
-                print(3)
-                print(e)
-            # sort the results
-            results = sorted([(v, k) for (k, v) in results.items()], reverse = reverse)
-        
+
+            for (k, hist) in index.items():
+                # compute the distance between the two histograms
+                # using the method and update the results dictionary
+
+                d = cv2.compareHist(index[str(frame1)], hist, method)
+                results[k] = d
+
+        # sort the results
+        results = sorted([(v, k) for (k, v) in results.items()], reverse = reverse)
+    
             
             # initialize the results figure
         fig = plt.figure("Results: %s" % (methodName))
@@ -297,15 +287,15 @@ class HistogramAnalysis():
         
         count = 0
         if config.get("Histogram Comparison", "opencv") == "True":
-            while count < len(lst1):
-                frame1 = count + 1 
+            while count + 2 < len(lst1):
+                frame1 = count + 1
                 frame2 = count + 2
                 try:
                     x["opencv"] = self.get_opencv(lst1, frame1, frame2)   
                 except Exception as e:
                     print(e)
                     break
-                if x["custom_chi"] == True:
+                if x["opencv"] == True:
                     return True
                 count += 1 
         

@@ -114,7 +114,7 @@ class mywindow(QtWidgets.QMainWindow):
         x = self.get_settings()
         print(x)
         
-        #opens config file
+        #opens config file so we can write to it.
         try:
             cfgfile = open("next.ini",'w')
         except:
