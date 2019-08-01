@@ -7,10 +7,11 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QCoreApplication
 import configparser
 config = configparser.ConfigParser()
-from svd.svd_gui_design import Ui_MainWindow  # importing our generated file
+from svd.svd_gui_design import Ui_MainWindow
 from svd.svd_histogram_analysis import HistogramAnalysis
 from svd.svd_face_detect import FaceDetection
-from svd.svd_capture import Capture, P
+from svd.svd_capture import Capture
+from svd.svd_file_name import FileName
 from svd.svd_scene_detector import SceneDetector
 from svd.svd_frame_lst import FrameList
 import cv2
@@ -56,9 +57,6 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui.check_face_checkbox.stateChanged.connect(self.check_face_checked)
         self.ui.crop_face_checkbox.stateChanged.connect(self.crop_face_checked)
         self.ui.scene_detect_checkbox.stateChanged.connect(self.scene_detect_checked)
-        
-    def update_label(self, text):
-        self.ui.info_label.setText(text)
         
     #Opens config file
     def config_menu_button(self):
@@ -116,7 +114,7 @@ class mywindow(QtWidgets.QMainWindow):
         x = self.get_settings()
         print(x)
         
-        #opens config file so we can write to it.
+        #opens config file
         try:
             cfgfile = open("next.ini",'w')
         except:
@@ -167,9 +165,8 @@ class mywindow(QtWidgets.QMainWindow):
         self.ui.info_label.setText("Please be patient, face detection \n can take up to 30 seconds")
         #gets the file name
         try:
-            video = P.get_x(self)
+            video = FileName.get_file_name(self)
         except Exception as e:
-            print(e)
             self.ui.info_label.setText("no file selected")
             return
         
@@ -282,7 +279,7 @@ class mywindow(QtWidgets.QMainWindow):
         y = QtWidgets.QFileDialog.getOpenFileName()
         try:
             #sets property to file name
-            P.set_x(self, y[0])
+            FileName.set_file_name(self, y[0])
         except Exception as e:
             print(e)
     
